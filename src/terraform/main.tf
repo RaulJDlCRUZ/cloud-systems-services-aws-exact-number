@@ -53,3 +53,55 @@ resource "aws_lambda_function" "cifras_lambda" {
     aws_cloudwatch_log_group.lambda_logs
   ]
 }
+
+# API Gateway
+resource "aws_apigatewayv2_api" "http_api" {
+  name          = "cifras-api"
+  protocol_type = "HTTP"
+}
+
+# Integración API Gateway con Lambda
+resource "aws_apigatewayv2_integration" "lambda_integration" {
+
+  api_id = aws_apigatewayv2_api.http_api.id
+
+  integration_type = "AWS_PROXY"
+
+  integration_uri = aws_lambda_function.cifras_lambda.invoke_arn
+
+  payload_format_version = "2.0"
+}
+
+# POST
+resource "aws_apigatewayv2_route" "solve_route" {
+
+  api_id = aws_apigatewayv2_api.http_api.id
+
+  route_key = "POST /solve"
+
+  target = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
+}
+
+# Stage (deploy automático)
+resource "aws_apigatewayv2_stage" "default_stage" {
+
+  api_id = aws_apigatewayv2_api.http_api.id
+
+  name = "$default"
+
+  auto_deploy = true
+}
+
+# Permiso para que API Gateway invoque Lambda
+resource "aws_lambda_permission" "apigw_invoke" {
+
+  statement_id  = "AllowAPIGatewayInvoke"
+
+  action        = "lambda:InvokeFunction"
+
+  function_name = aws_lambda_function.cifras_lambda.function_name
+
+  principal     = "apigateway.amazonaws.com"
+
+  source_arn = "${aws_apigatewayv2_api.http_api.execution_arn}/*/*"
+}

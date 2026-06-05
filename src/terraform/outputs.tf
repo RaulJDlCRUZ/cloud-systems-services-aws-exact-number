@@ -17,3 +17,8 @@ output "dynamodb_table_name" {
 output "dynamodb_table_arn" {
   value = aws_dynamodb_table.calculation_results.arn
 }
+
+# API Gateway endpoint
+output "api_url" {
+  value = aws_apigatewayv2_api.http_api.api_endpoint
+}
