@@ -1,0 +1,5 @@
+*.jar
+*.lock.hcl
+*.tfstate
+*.tfstate.backup
+terraform-provider-aws_v5.100.0_x5
